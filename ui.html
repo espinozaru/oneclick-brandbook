@@ -1,0 +1,242 @@
+<meta charset="utf-8">
+<style>
+  :root { --red: #e93f3f; --ink: #1f1f1f; --muted: #6b6b6b; --line: #e3e3e0; --bg: #ffffff; --soft: #f7f7f4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; font: 13px/1.45 "Inter", system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+  h1 { margin: 0 0 4px; font-size: 15px; }
+  h2 { display: flex; align-items: center; gap: 8px; margin: 18px 0 8px; font-size: 13px; }
+  h2 b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--red); color: #fff; font-size: 11px; }
+  p.hint { margin: 0 0 10px; color: var(--muted); }
+  .role { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 6px; border: 1px solid var(--line); border-radius: 12px; }
+  .role span { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .role strong { display: block; font-size: 12px; }
+  .role.done { border-color: #9bd09b; background: #f3fbf3; }
+  button { height: 34px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  button.primary { width: 100%; height: 40px; border-color: var(--ink); background: var(--ink); color: #fff; }
+  button.red { border-color: var(--red); background: var(--red); }
+  label { display: block; margin: 10px 0 4px; color: var(--muted); font-size: 12px; }
+  input, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font: inherit; color: inherit; background: var(--soft); }
+  textarea { min-height: 56px; resize: vertical; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .check { display: flex; gap: 8px; align-items: center; margin-top: 10px; color: var(--muted); font-size: 12px; }
+  .check input { width: auto; }
+  #status { min-height: 18px; margin-top: 10px; font-size: 12px; }
+  #status.err { color: var(--red); }
+  #status.ok { color: #2e7d32; }
+  .combo { position: relative; }
+  .list { display: none; position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 4px); max-height: 220px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  .list.open { display: block; }
+  .list li { padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .list li:hover, .list li.active { background: var(--soft); }
+  .list li.empty { color: var(--muted); cursor: default; }
+  .how { margin: 0 0 8px; padding-left: 18px; color: var(--muted); }
+  .sel { margin-bottom: 8px; padding: 8px 10px; border-radius: 10px; background: var(--soft); color: var(--muted); font-size: 12px; }
+  .sel.on { background: #fff6e5; color: var(--ink); }
+  .role em { font-style: normal; font-weight: 400; color: var(--muted); }
+  button:disabled { opacity: .4; cursor: default; }
+  p.small { margin-top: 8px; font-size: 11px; }
+  #status { white-space: pre-line; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .langs { display: flex; gap: 2px; padding: 2px; border-radius: 999px; background: var(--soft); }
+  .langs button { height: 24px; padding: 0 9px; border: 0; background: transparent; color: var(--muted); font-size: 11px; }
+  .langs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .pro { margin-top: 18px; padding: 12px 14px; border-radius: 12px; background: #1f1f1f; color: #fff; }
+  .pro strong { display: block; font-size: 12px; }
+  .pro p { margin: 4px 0 8px; color: rgba(255,255,255,.7); font-size: 11px; }
+  .pro a { color: #ff6b6b; font-weight: 600; font-size: 12px; text-decoration: none; }
+  .credit { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+  .credit a { color: var(--ink); font-weight: 600; text-decoration: none; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; border-radius: 999px; background: var(--soft); }
+  .seg button { height: 30px; border: 0; background: transparent; color: var(--muted); }
+  .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .tips { margin-top: 4px; }
+  .tips-list { margin: 6px 0 8px; padding-left: 18px; font-size: 11px; color: var(--muted); }
+  .tips-list.ok li::marker { content: '✓  '; color: #2e7d32; }
+  .tips-list.no li::marker { content: '!  '; color: var(--red); }
+  details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 10px; }
+</style>
+
+<div class="top"><h1>OneClick Brandbook</h1><div class="langs"><button data-lang="ru">RU</button><button data-lang="en">EN</button><button data-lang="es">ES</button></div></div>
+<p class="hint" data-i="tagline"></p>
+
+<h2><b>1</b><span data-i="step1"></span></h2>
+<ol class="how">
+  <li data-i="how1"></li>
+  <li data-i="how2"></li>
+</ol>
+<div id="sel" class="sel"></div>
+<div class="role" data-role="square"><div><strong><span data-i="rSquare"></span> <em data-i="required"></em></strong><span class="picked" data-i="notPicked"></span></div><button data-assign="square" data-i="thisOne" disabled></button></div>
+<div class="role" data-role="horiz"><div><strong><span data-i="rHoriz"></span> <em data-i="optional"></em></strong><span class="picked" data-i="notPicked"></span></div><button data-assign="horiz" data-i="thisOne" disabled></button></div>
+<div class="role" data-role="symbol"><div><strong><span data-i="rSymbol"></span> <em data-i="optional"></em></strong><span class="picked" data-i="notPicked"></span></div><button data-assign="symbol" data-i="thisOne" disabled></button></div>
+<div class="role" data-role="colors"><div><strong><span data-i="rColors"></span> <em data-i="optional"></em></strong><span class="picked" data-i="colorsHint"></span></div><button data-assign="colors" data-i="theseOnes" disabled></button></div>
+<div class="check"><input type="checkbox" id="autoGrid" checked /><label for="autoGrid" style="margin:0" data-i="autoGrid"></label></div>
+<button class="primary" id="prepare" data-i="prepare" disabled></button>
+<p class="hint small" data-i="prepareHint"></p>
+<details class="tips">
+  <summary data-i="tipsTitle"></summary>
+  <ul class="tips-list ok"><li data-i="tip1"></li><li data-i="tip2"></li><li data-i="tip3"></li><li data-i="tip4"></li></ul>
+  <p class="hint small" data-i="notYet"></p>
+  <ul class="tips-list no"><li data-i="no1"></li><li data-i="no2"></li><li data-i="no3"></li><li data-i="no4"></li></ul>
+</details>
+
+<h2><b>2</b><span data-i="step2"></span></h2>
+<label data-i="bbLang"></label>
+<div class="seg" id="bbLang"><button type="button" data-bb="ru">Русский</button><button type="button" data-bb="en">English</button><button type="button" data-bb="es">Español</button></div>
+<label for="name" data-i="brandName"></label>
+<input id="name" />
+<div class="row">
+  <div><label for="fontHead" data-i="fontHead"></label><div class="combo"><input id="fontHead" autocomplete="off" data-ph="fontSearch" /><ul class="list"></ul></div></div>
+  <div><label for="fontBody" data-i="fontBody"></label><div class="combo"><input id="fontBody" autocomplete="off" data-ph="fontSearch" /><ul class="list"></ul></div></div>
+</div>
+<details>
+  <summary data-i="texts"></summary>
+  <p class="hint small" data-i="textsLang"></p>
+  <label for="company" data-i="company"></label><textarea id="company"></textarea>
+  <label for="idea" data-i="idea"></label><textarea id="idea"></textarea>
+  <label for="tone" data-i="tone"></label><textarea id="tone"></textarea>
+</details>
+<div class="check"><input type="checkbox" id="useStyles" checked /><label for="useStyles" style="margin:0" data-i="useStyles"></label></div>
+<p class="hint small" data-i="useStylesHint"></p>
+<button class="primary red" id="generate" data-i="generate"></button>
+
+<div id="status"></div>
+<div class="pro">
+  <strong data-i="proTitle"></strong>
+  <p data-i="proText"></p>
+  <a id="proLink" href="https://denis.espinoza.ru/oneclick-brandbook/" target="_blank" rel="noopener" data-i="proLink"></a>
+</div>
+<footer class="credit"><span data-i="madeBy"></span> <a href="https://denis.espinoza.ru" target="_blank" rel="noopener">Denis Espinoza ↗</a> · <a href="https://pay.cloudtips.ru/p/945dde54" target="_blank" rel="noopener" data-i="support"></a></footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  // Idiomas del panel (el brandbook generado, por ahora, siempre en ruso)
+  const I18N = {
+    ru: { rColors: "Цвета бренда", colorsHint: "выделите образцы цвета", theseOnes: "Это они", selectColors: "Выделите хотя бы один образец цвета", proTitle: "Полная версия — OneClick Brandbook Pro", proText: "Визитка, бланк A4, конверт, карусель, stories и построение логотипа — в натуральную величину.", proLink: "Подробнее ↗", textsLang: 'Пишите тексты на языке брендбука: плагин их не переводит.', bbLang: 'Язык брендбука', tipsTitle: 'Как получить лучший результат', tip1: 'Логотип в кривых: текст переведён в кривые, обводки — в заливки.', tip2: 'Цвета — сплошные заливки. Если в файле есть Color styles, логотип привяжется к ним.', tip3: 'Без лишнего: скрытые слои, подложки и вспомогательные объекты лучше убрать.', tip4: 'Сетку и охранное поле можно оставить — плагин узнает их (Grid, Safe, тонкие линии, пунктир).', notYet: 'Пока не поддерживается:', no1: 'Логотип-картинка (PNG, JPG): перекрасить в чёрный и белый нельзя.', no2: 'Градиенты: работают, но не привязываются к стилям.', no3: 'Компонент с вариантами: берётся выбранный вариант.', no4: 'Логотип из внешней библиотеки: цвета не привязываются.', tagline: 'Брендбук из вашего логотипа за два шага.', step1: 'Покажите плагину логотип', how1: 'Кликните по логотипу на холсте Figma.', how2: 'Нажмите «Это он» в нужной строке.',
+      rSquare: 'Основной логотип', rHoriz: 'Горизонтальный', rSymbol: 'Знак без текста', required: 'обязательно', optional: 'если есть', notPicked: 'ещё не выбран', thisOne: 'Это он', replace: 'Заменить',
+      autoGrid: 'Построить сетку, если в логотипе её нет', prepare: 'Создать версии логотипа',
+      prepareHint: 'Плагин сделает чёрную и белую версии, охранное поле и сетку на странице «Logo System». Если в логотипе уже есть сетка или охранное поле — возьмёт их и уберёт из чистой версии. Оригинал не меняется.',
+      step2: 'Соберите брендбук', brandName: 'Название бренда', fontHead: 'Шрифт заголовков', fontBody: 'Шрифт текста', fontSearch: 'Поиск шрифта', noFont: 'Шрифт не найден',
+      texts: 'Тексты (необязательно)', company: 'О компании', idea: 'Идея знака', tone: 'Тон коммуникации',
+      useStyles: 'Взять шрифты и цвета из стилей этого файла', useStylesHint: 'Если в файле уже есть стили текста и цвета — плагин возьмёт их. Выключите, чтобы использовать шрифты, выбранные выше, и цвета из логотипа.', generate: 'Создать брендбук',
+      selNone: 'Ничего не выделено — кликните по логотипу', selMany: 'Выделите только один логотип', selOne: 'Выделено: ', picked: 'Выбрано: ',
+      preparing: 'Создаю версии логотипа…', generating: 'Создаю брендбук…', prepared: 'Готово! На странице «Logo System» {n} версий логотипа.',
+      gridOwn: 'сетка ваша (убрана из чистой версии)', gridAuto: 'сетка построена', gridNone: 'без сетки', safeLayout: 'охранное поле взято из макета', safeQuarter: 'охранное поле ¼ высоты', minimal: 'создан компонент',
+      selectOne: 'Сначала кликните по одному логотипу на холсте', selectLogo: 'Выберите логотип: кликните по нему на холсте или отметьте в шаге 1', needMain: 'Сначала выберите основной логотип', error: 'Ошибка: ', madeBy: 'Автор —', support: 'Поддержать проект ↗' },
+    en: { rColors: "Brand colors", colorsHint: "select color swatches", theseOnes: "These", selectColors: "Select at least one color swatch", proTitle: "Full version — OneClick Brandbook Pro", proText: "Business card, A4 letterhead, envelope, carousel, stories and logo construction — at actual size.", proLink: "Learn more ↗", textsLang: 'Write these texts in the brandbook language: the plugin doesn’t translate them.', bbLang: 'Brandbook language', tipsTitle: 'How to get the best result', tip1: 'Logo in outlines: text converted to outlines, strokes to fills.', tip2: 'Solid color fills. If the file has Color styles, the logo is linked to them.', tip3: 'Nothing extra: remove hidden layers, backgrounds and helper objects.', tip4: 'You can keep your grid and clear space — the plugin recognizes them (Grid, Safe, thin lines, dashes).', notYet: 'Not supported yet:', no1: 'Image logos (PNG, JPG): they can’t be recolored black and white.', no2: 'Gradients: they work but aren’t linked to styles.', no3: 'Components with variants: the selected variant is used.', no4: 'Logos from an external library: colors aren’t linked.', tagline: 'A brandbook from your logo in two steps.', step1: 'Show the plugin your logo', how1: 'Click your logo on the Figma canvas.', how2: 'Press “This one” in the matching row.',
+      rSquare: 'Main logo', rHoriz: 'Horizontal', rSymbol: 'Symbol without text', required: 'required', optional: 'if any', notPicked: 'not selected yet', thisOne: 'This one', replace: 'Replace',
+      autoGrid: 'Build a grid if the logo has none', prepare: 'Create logo versions',
+      prepareHint: 'The plugin makes black and white versions, a clear space and a grid on the “Logo System” page. If your logo already has a grid or clear space, it uses them and removes them from the clean version. The original stays untouched.',
+      step2: 'Build the brandbook', brandName: 'Brand name', fontHead: 'Heading font', fontBody: 'Body font', fontSearch: 'Search font', noFont: 'Font not found',
+      texts: 'Texts (optional)', company: 'About the company', idea: 'Logo idea', tone: 'Tone of voice',
+      useStyles: 'Use fonts and colors from this file’s styles', useStylesHint: 'If the file already has text and color styles, the plugin uses them. Turn off to use the fonts chosen above and colors from the logo.', generate: 'Create brandbook',
+      selNone: 'Nothing selected — click your logo', selMany: 'Select only one logo', selOne: 'Selected: ', picked: 'Picked: ',
+      preparing: 'Creating logo versions…', generating: 'Creating brandbook…', prepared: 'Done! {n} logo versions on the “Logo System” page.',
+      gridOwn: 'your grid (removed from the clean version)', gridAuto: 'grid built', gridNone: 'no grid', safeLayout: 'clear space taken from your layout', safeQuarter: 'clear space ¼ of height', minimal: 'component created',
+      selectOne: 'First click a single logo on the canvas', selectLogo: 'Pick a logo: click it on the canvas or mark it in step 1', needMain: 'Pick the main logo first', error: 'Error: ', madeBy: 'Made by', support: 'Support the project ↗' },
+    es: { rColors: "Colores de marca", colorsHint: "selecciona las muestras", theseOnes: "Son estos", selectColors: "Selecciona al menos una muestra de color", proTitle: "Versión completa — OneClick Brandbook Pro", proText: "Tarjeta, hoja A4, sobre, carrusel, stories y construcción del logo, a tamaño real.", proLink: "Ver más ↗", textsLang: 'Escribe estos textos en el idioma del brandbook: el plugin no los traduce.', bbLang: 'Idioma del brandbook', tipsTitle: 'Cómo lograr el mejor resultado', tip1: 'Logo en curvas: texto convertido a curvas y trazos a rellenos.', tip2: 'Colores en rellenos sólidos. Si el archivo tiene Color styles, el logo se vincula a ellos.', tip3: 'Nada de más: quita capas ocultas, fondos y objetos de apoyo.', tip4: 'Puedes dejar tu grid y área de protección: el plugin los reconoce (Grid, Safe, líneas finas, punteado).', notYet: 'Todavía no se admite:', no1: 'Logo en imagen (PNG, JPG): no se puede pasar a negro y blanco.', no2: 'Degradados: funcionan, pero no se vinculan a estilos.', no3: 'Componente con variantes: se usa la variante seleccionada.', no4: 'Logo de una librería externa: los colores no se vinculan.', tagline: 'Un brandbook a partir de tu logo en dos pasos.', step1: 'Muéstrale tu logo al plugin', how1: 'Haz clic en tu logo en el lienzo de Figma.', how2: 'Pulsa «Es este» en la fila correspondiente.',
+      rSquare: 'Logo principal', rHoriz: 'Horizontal', rSymbol: 'Símbolo sin texto', required: 'obligatorio', optional: 'si existe', notPicked: 'aún no elegido', thisOne: 'Es este', replace: 'Cambiar',
+      autoGrid: 'Construir grid si el logo no lo tiene', prepare: 'Crear versiones del logo',
+      prepareHint: 'El plugin crea versiones negra y blanca, área de protección y grid en la página «Logo System». Si tu logo ya trae grid o área de protección, los usa y los quita de la versión limpia. El original no se toca.',
+      step2: 'Arma el brandbook', brandName: 'Nombre de la marca', fontHead: 'Fuente de títulos', fontBody: 'Fuente de texto', fontSearch: 'Buscar fuente', noFont: 'Fuente no encontrada',
+      texts: 'Textos (opcional)', company: 'Sobre la empresa', idea: 'Idea del logo', tone: 'Tono de comunicación',
+      useStyles: 'Usar fuentes y colores de los estilos del archivo', useStylesHint: 'Si el archivo ya tiene estilos de texto y color, el plugin los usa. Desactívalo para usar las fuentes elegidas arriba y los colores del logo.', generate: 'Crear brandbook',
+      selNone: 'Nada seleccionado: haz clic en tu logo', selMany: 'Selecciona un solo logo', selOne: 'Seleccionado: ', picked: 'Elegido: ',
+      preparing: 'Creando versiones del logo…', generating: 'Creando brandbook…', prepared: '¡Listo! {n} versiones del logo en la página «Logo System».',
+      gridOwn: 'grid tuyo (quitado de la versión limpia)', gridAuto: 'grid construido', gridNone: 'sin grid', safeLayout: 'área de protección tomada de tu diseño', safeQuarter: 'área de protección ¼ de la altura', minimal: 'componente creado',
+      selectOne: 'Primero haz clic en un solo logo del lienzo', selectLogo: 'Elige un logo: haz clic en él o márcalo en el paso 1', needMain: 'Primero elige el logo principal', error: 'Error: ', madeBy: 'Hecho por', support: 'Apoyar el proyecto ↗' }
+  };
+  let lang = 'ru', lastSel = { count: 0, name: '' };
+  const t = (k) => (I18N[lang] && I18N[lang][k]) || I18N.ru[k] || k;
+  const applyLang = (l, save) => {
+    lang = I18N[l] ? l : 'ru';
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i]').forEach(el => { if (!el.closest('.role.done') || !el.classList.contains('picked')) el.textContent = t(el.dataset.i); });
+    document.querySelectorAll('.role.done button').forEach(b => b.textContent = t('replace'));
+    document.querySelectorAll('[data-ph]').forEach(el => el.placeholder = t(el.dataset.ph));
+    document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+    showSel(lastSel);
+    const pl = document.getElementById('proLink'); if (pl) pl.href = 'https://denis.espinoza.ru/' + (lang === 'ru' ? '' : lang + '/') + 'oneclick-brandbook/';
+    if (save) parent.postMessage({ pluginMessage: { type: 'lang', lang } }, '*');
+  };
+  const showSel = (m) => {
+    lastSel = m; const one = m.count === 1;
+    $('sel').className = 'sel' + (one ? ' on' : '');
+    $('sel').textContent = one ? t('selOne') + m.name : m.count ? t('selMany') : t('selNone');
+    document.querySelectorAll('[data-assign]').forEach(b => b.disabled = b.dataset.assign === 'colors' ? !m.count : !one);
+  };
+  document.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => { applyLang(b.dataset.lang, true); setBB(b.dataset.lang); });
+  let bbLang = 'ru';
+  const setBB = (l) => { bbLang = l; document.querySelectorAll('[data-bb]').forEach(b => b.classList.toggle('on', b.dataset.bb === l)); };
+  document.querySelectorAll('[data-bb]').forEach(b => b.onclick = () => setBB(b.dataset.bb));
+  applyLang((navigator.language || 'ru').slice(0, 2));
+  setBB(lang);
+  const status = (text, kind) => { const s = $('status'); s.textContent = text; s.className = kind || ''; };
+  const roleLabel = (role, name) => {
+    const box = document.querySelector('[data-role="' + role + '"]');
+    box.classList.add('done');
+    box.querySelector('.picked').textContent = '✓ ' + name;
+    box.querySelector('button').textContent = t('replace');
+    if (role === 'square' || role === 'horiz') $('prepare').disabled = false;
+  };
+  // Selector de fuente propio (el datalist nativo no responde bien dentro de Figma)
+  let families = [];
+  document.querySelectorAll('.combo').forEach(combo => {
+    const input = combo.querySelector('input'), list = combo.querySelector('ul');
+    let active = -1;
+    const render = (all) => {
+      const q = all ? '' : input.value.trim().toLowerCase();
+      const items = families.filter(f => f.toLowerCase().includes(q)).slice(0, 80);
+      active = -1;
+      list.innerHTML = items.length ? items.map(f => '<li>' + f.replace(/</g, '&lt;') + '</li>').join('') : '<li class="empty">' + t('noFont') + '</li>';
+      list.classList.add('open');
+    };
+    const pick = (li) => { if (!li || li.classList.contains('empty')) return; input.value = li.textContent; list.classList.remove('open'); };
+    input.addEventListener('focus', () => { render(true); input.select(); });
+    input.addEventListener('click', () => render(true));
+    input.addEventListener('input', () => render(false));
+    input.addEventListener('blur', () => setTimeout(() => list.classList.remove('open'), 150));
+    list.addEventListener('mousedown', e => { e.preventDefault(); pick(e.target.closest('li')); input.blur(); });
+    input.addEventListener('keydown', e => {
+      const lis = list.querySelectorAll('li:not(.empty)');
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault(); if (!list.classList.contains('open')) render(true);
+        active = Math.max(0, Math.min(lis.length - 1, active + (e.key === 'ArrowDown' ? 1 : -1)));
+        lis.forEach((li, i) => li.classList.toggle('active', i === active));
+        if (lis[active]) lis[active].scrollIntoView({ block: 'nearest' });
+      }
+      if (e.key === 'Enter') { e.preventDefault(); pick(lis[active >= 0 ? active : 0]); input.blur(); }
+      if (e.key === 'Escape') list.classList.remove('open');
+    });
+  });
+  window.onmessage = (event) => {
+    const msg = event.data.pluginMessage; if (!msg) return;
+    if (msg.type === 'init') {
+      families = msg.families || [];
+      if (msg.lang) { applyLang(msg.lang); setBB(lang); }
+      Object.entries(msg.roles || {}).forEach(([r, n]) => roleLabel(r, n));
+      const o = msg.options || {};
+      ['name', 'fontHead', 'fontBody', 'company', 'idea', 'tone'].forEach(k => { if (o[k] && !/^\[Текст/.test(o[k])) $(k).value = o[k]; });
+      $('useStyles').checked = !o.ignoreStyles;
+    }
+    if (msg.type === 'selection') {
+      showSel(msg);
+    }
+    if (msg.type === 'assigned') { roleLabel(msg.role, msg.name); status(t('picked') + msg.name, 'ok'); }
+    if (msg.type === 'prepared') {
+      const role = { square: 'rSquare', horiz: 'rHoriz', symbol: 'rSymbol' };
+      const lines = (msg.notes || []).map(n => t(role[n.role]) + ': ' + (n.minimal ? t('minimal') : t({ own: 'gridOwn', auto: 'gridAuto', none: 'gridNone' }[n.grid]) + ', ' + t(n.safe === 'layout' ? 'safeLayout' : 'safeQuarter')));
+      status([t('prepared').replace('{n}', msg.count)].concat(lines).join('\n'), 'ok');
+    }
+    if (msg.type === 'error') status(msg.code && I18N.ru[msg.code] ? t(msg.code) : t('error') + msg.text, 'err');
+  };
+  document.querySelectorAll('[data-assign]').forEach(b => b.onclick = () => parent.postMessage({ pluginMessage: { type: 'assign', role: b.dataset.assign } }, '*'));
+  $('prepare').onclick = () => { status(t('preparing')); parent.postMessage({ pluginMessage: { type: 'prepare', autoGrid: $('autoGrid').checked } }, '*'); };
+  $('generate').onclick = () => {
+    status(t('generating'));
+    const options = {};
+    ['name', 'fontHead', 'fontBody', 'company', 'idea', 'tone'].forEach(k => { const v = $(k).value.trim(); if (v) options[k] = v; });
+    options.ignoreStyles = !$('useStyles').checked;
+    options.bbLang = bbLang;
+    parent.postMessage({ pluginMessage: { type: 'generate', options } }, '*');
+  };
+</script>
